@@ -1,5 +1,5 @@
 import puzzle8 as p8
-import heapq as pq
+import heapq as pq # for "Priority Queue"
 
 def numWrongTiles(state):
     numWrong = 0
@@ -80,23 +80,17 @@ def astar(state, heuristic):
     return currentNode.path
 
 def astarFindChildren(parent, heuristic):
-    zeroLocation = getZeroLocation(parent.state)
+    zeroLocation = p8.blankSquare(parent.state)
     neighbors = p8.neighbors(zeroLocation)
     children = []
     for neighbor in neighbors:
         newState = p8.moveBlank(parent.state, neighbor)
-        childZero = getZeroLocation(newState)
+        childZero = p8.blankSquare(newState)
         newPath = parent.path.copy()
         newPath.append(childZero)
         child = Node(newState, heuristic(newState), parent.depth+1, newPath)
         children.append(child)
     return children
-
-def getZeroLocation(state):
-    for i in range(9):
-        tile = p8.getTile(state, i)
-        if tile == 0:
-            return i
 
 class Node:
     def __init__(self, state, heuristic, depth, path):
@@ -110,4 +104,3 @@ class Node:
 
     def __str__(self):
         return f"state = {self.state}, heuristic = {self.heuristic}, depth = {self.depth}, path = {self.path}"
-
