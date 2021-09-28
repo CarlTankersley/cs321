@@ -1,7 +1,5 @@
 import puzzle8 as p8
-from sys import argv
 import heapq as pq
-from time import time
 
 def numWrongTiles(state):
     numWrong = 0
@@ -113,18 +111,3 @@ class Node:
     def __str__(self):
         return f"state = {self.state}, heuristic = {self.heuristic}, depth = {self.depth}, path = {self.path}"
 
-def main():
-    puzzle = p8.randomState()
-    for i in range(3):
-        row = ""
-        for j in range(3):
-            row += (str(p8.getTile(puzzle,3*i+j)) + " ")
-        print(row)
-    start = time()
-    path = astar(puzzle, manhattanDistance)
-    timeElapsed = time() - start
-    print("Solution path: " + str(path) + ", length = " + str(len(path)))
-    print("Time = " + str(timeElapsed))
-
-if __name__ == "__main__":
-    main()
