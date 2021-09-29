@@ -92,6 +92,7 @@ def astarFindChildren(parent, heuristic):
         children.append(child)
     return children
 
+
 class Node:
     def __init__(self, state, heuristic, depth, path):
         self.state = state
