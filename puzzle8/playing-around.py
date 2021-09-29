@@ -29,7 +29,7 @@ def main():
             row += (str(p8.getTile(puzzle,3*i+j)) + " ")
         print(row)
     start = time()
-    path = astar(puzzle, nilsson)
+    path = astar(puzzle, manhattanDistance)
     timeElapsed = time() - start
     print("Solution path: " + str(path))
     print("Length = " + str(len(path)))

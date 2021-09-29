@@ -8,7 +8,6 @@ def numWrongTiles(state):
             numWrong += 1
     return numWrong
 
-
 def manhattanDistance(state):
     distance = 0
     soln = [(),    # Locations of the tiles in the solution state
@@ -91,7 +90,6 @@ def astarFindChildren(parent, heuristic):
         child = Node(newState, heuristic(newState), parent.depth+1, newPath)
         children.append(child)
     return children
-
 
 class Node:
     def __init__(self, state, heuristic, depth, path):
