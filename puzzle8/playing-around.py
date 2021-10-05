@@ -1,6 +1,6 @@
 from search import *
 from time import time
-from sys import argv
+import argparse
 
 def nilsson(state):
     order = [0, 1, 2, 5, 8, 7, 6, 3, 4]
@@ -15,14 +15,15 @@ def nilsson(state):
     return score
 
 def main():
-    if len(argv) == 1:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--state", nargs='*', type=int)
+    args = parser.parse_args()
+    if args.state is None:
         puzzle = p8.randomState()
-    elif len(argv) == 10:
-        for i in range(1, len(argv)):
-            argv[i] = int(argv[i])
-        puzzle = p8.state(argv[1:10])
+    elif len(args.state) == 9:
+        puzzle = p8.state(args.state)
     else:
-        exit(f"Error: Incorrect number of arguments ({len(argv)-1})")
+        exit(f"Error: Incorrect number of arguments ({len(args.state)})")
     for i in range(3):
         row = ""
         for j in range(3):
