@@ -41,30 +41,13 @@ class HumanPlayer:
 
    
 def heuristic(board) -> int:
-    '''This very silly heuristic just adds up all the 1s, -1s, and 0s
-    stored on the othello board.'''
-    # return len(board._legalMoves(1)) - len(board._legalMoves(-1))
-    positiveSum = 0
-    negativeSum = 0
-    for i in range(1,othelloBoard.size-1):
-        for j in range(1,othelloBoard.size-1):
-            if board.array[i][j] == 1:
-                positiveSum += 1
-                if (i == 0 or i == 7) and (j == 0 or j == 7):
-                    positiveSum += 99
-                if (i == 1 or i == 6) or (j == 1 or j == 6):
-                    positiveSum -= 2
-            elif board.array[i][j] == -1:
-                negativeSum += 1
-                if (i == 0 or i == 7) and (j == 0 or j == 7):
-                    negativeSum += 99
-                if (i == 1 or i == 6) or (j == 1 or j == 6):
-                    negativeSum -= 2
-    # return len(board._legalMoves(1)) - len(board._legalMoves(-1)) + positiveSum ** 2 / 128 - negativeSum ** 2 / 128
-    return positiveSum / (len(board._legalMoves(-1)) or .001) - negativeSum / (len(board._legalMoves(1)) or .001)
+    '''Determines the quality of a move by how much it increases the player's number of legal moves and decreases
+    the opponent's number of legal moves.'''
+    return 1/(len(board._legalMoves(1))+1) - 1/(len(board._legalMoves(-1))+1)
+    
     
 
-class ComputerPlayer:
+class ComputerPlayerMinimax:
     '''Computer player: chooseMove is where the action is.'''
     def __init__(self,name,color,heuristic,plies) -> None:
         self.name = name
@@ -79,32 +62,82 @@ class ComputerPlayer:
     def chooseMove(self,board) -> Optional[Tuple[int,int,int]]:
         '''This very silly player just returns the first legal move
         that it finds.'''
-        # for i in range(1,othelloBoard.size-1):
-        #     for j in range(1,othelloBoard.size-1):
-        #         bcopy = board.makeMove(i,j,self.color)
-        #         if bcopy:
-        #             print('Heuristic value = ' + str(self.heuristic(bcopy)))
-        #             numHeuristicCalls += 1
-        #             return (i,j,numHeuristicCalls)
-
+        
+        self.numHeuristicCalls = 0
         moves = board._legalMoves(self.color)
         curr_best = (minint * self.color, (-1, -1))
         for move in moves:
-            curr_minimax = self.minimax(board.makeMove(move[0], move[1], self.color), self.plies * 2, -self.color)
+            curr_minimax = self.minimax(board.makeMove(move[0], move[1], self.color), self.plies, -self.color)
             if curr_minimax*self.color > curr_best[0]*self.color:
                 curr_best = (curr_minimax, move)
         if curr_best[0] != minint * self.color:
-            return (curr_best[1][0], curr_best[1][1], self.numHeuristicCalls)
+            return (curr_best[1][0], curr_best[1][1], self.numHeuristicCalls)        
         # None is considered a pass
         return None
 
     def minimax(self, board, depth_remaining, color):
-        moves = board._legalMoves(color)
-        if depth_remaining == 0 or len(moves) == 0:
+        if depth_remaining <= 0:
             self.numHeuristicCalls += 1
             return self.heuristic(board)
-        curr_best = minint * color
-        for move in moves:
-            curr_best = color * max(curr_best * color, self.minimax(board.makeMove(move[0], move[1], color), depth_remaining - 1, -1 * color) * color)
-        return curr_best
+        moves = board._legalMoves(color)
+        if len(moves) == 0:
+            self.numHeuristicCalls += 1
+            return self.heuristic(board)
+        if color == 1:
+            best_move = minint
+            for move in moves:
+                best_move = max(best_move, self.minimax(board.makeMove(move[0], move[1], color), depth_remaining - 1, -1))
+        elif color == -1:
+            best_move = sys.maxsize
+            for move in moves:
+                best_move = min(best_move, self.minimax(board.makeMove(move[0], move[1], color), depth_remaining - 1, 1))
+        return best_move
+
     
+class ComputerPlayer:
+    def __init__(self,name,color,heuristic,plies) -> None:
+        self.name = name
+        self.color = color
+        self.heuristic = heuristic
+        self.plies = plies
+        self.numHeuristicCalls = 0
+
+
+    def chooseMove(self,board) -> Optional[Tuple[int,int,int]]:
+        self.numHeuristicCalls = 0
+        curr_best = (minint * self.color, (-1, -1))
+        moves = board._legalMoves(self.color)
+        for move in moves:
+            curr_option = self.alphabeta(board.makeMove(move[0], move[1], self.color), self.plies-1, minint, sys.maxsize, self.color)
+            if curr_option*self.color > curr_best[0]*self.color:
+                curr_best = (curr_option, move)
+        if curr_best[0] != minint * self.color:
+            return (curr_best[1][0], curr_best[1][1], self.numHeuristicCalls)  
+        # None is considered a pass
+        return None
+
+    def alphabeta(self, board, depth_remaining, alpha, beta, color):
+        if depth_remaining == 0:
+            self.numHeuristicCalls += 1
+            return self.heuristic(board)
+        moves = board._legalMoves(color)
+        if len(moves) == 0:
+            self.numHeuristicCalls += 1
+            return self.heuristic(board)
+        if color == 1:
+            value = minint
+            for move in moves:
+                value = max(value, self.alphabeta(board.makeMove(move[0], move[1], color), depth_remaining - 1, alpha, beta, -1))
+                if value >= beta:
+                    break
+                alpha = max(alpha, value)
+        elif color == -1:
+            value = sys.maxsize
+            for move in moves:
+                value = min(value, self.alphabeta(board.makeMove(move[0], move[1], color), depth_remaining - 1, alpha, beta, 1))
+                if value <= alpha:
+                    break
+                beta = min(beta, value)
+        return value
+
+        
