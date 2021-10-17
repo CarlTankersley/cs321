@@ -103,12 +103,10 @@ def MCTS(root, rollouts):
         backpropagate(outcome, node, root)
     return bestValue(root)
 
-
 def select(node):
     while not node.state.isTerminal() and len(node.children) == len(node.state.getMoves()):
         node = bestUCB(node)
     return node
-
 
 def bestUCB(node):
     curr_best = (-1, None)
@@ -117,7 +115,6 @@ def bestUCB(node):
         if child.UCBValue() > curr_best[0]:
             curr_best = (child.UCBValue(), child)
     return curr_best[1]
-
 
 def expand(node):
     moves = node.state.getMoves()
@@ -128,12 +125,10 @@ def expand(node):
             break
     return child
 
-
 def random_playout(node):
     while not node.state.isTerminal():
         node = Node(node.state.nextState(random_move(node)), None) # no parent so that it's not connected to the tree
     return node.state.value()                                      # and gets garbage collected, since it's a temp node
-
 
 def backpropagate(outcome, node, root):
     while True:
@@ -142,7 +137,6 @@ def backpropagate(outcome, node, root):
             break
         node = node.parent
 
-
 def bestValue(node):
     curr_best = (-1, None)
     for key in node.children.keys():
@@ -150,7 +144,6 @@ def bestValue(node):
         if child.value > curr_best[0]:
             curr_best = (child.value, key)
     return curr_best[1]
-
 
 def parse_args():
     """

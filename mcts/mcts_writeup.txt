@@ -21,5 +21,9 @@
    P1 - 8 rollouts, P2 - 64 rollouts. P1 won 2/25 and drew three times, with P2 winning 20
    P1 - 8 rollouts, P2 - 512 rollouts. P1 won 0/25 and drew eight times, with P2 winning 17
    P1 - 64 rollouts, P2 - 512 rollouts. P1 won 4/25 and drew 12 times, with P2 winning 9
+   P1 - 64 rollouts, P2 - 64 rollouts. P1 won 5/25 and drew 11, with P2 winning 8
+   P1 - 512 rollouts, P2 - 512 rollouts. P1 won 3/25 and drew 18, with P2 winnning 4
    Unsurprisingly, more rollouts leads to a better win percentage, and when both players are
-   smart, they draw more often. 
+   smart, they draw more often. It would seem that as the players become more evenly matched,
+   they will draw more and more often, which seems likely to asymptotically approach 100% of
+   games played as the number of rollouts increases.
