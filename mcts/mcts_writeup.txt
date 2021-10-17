@@ -1,0 +1,25 @@
+1. Player 1 won all 25 games
+
+2. Player 1 won no games, but did manage to draw one. Probably just happened to play decently by chance,
+   which is not terribly unlikely with a branching factor of at most 5.
+
+3. UCB constant = 0.5: 25/25 wins for Player 1
+   UCB constant = 0.1: 23/25 wins for Player 1, with the remaining two games being draws 
+   UCB constant = 0.3: 24/25 wins for Player 1, with the remaining game being a draw 
+   UCB constant = 0.7: 24/25 wins for Player 1, with the remaining game being a draw 
+   UCB constant = 0.9: 24/25 wins for Player 1, with the remaining game being a loss
+   UCB constant = 1.5: 23/25 wins for Player 1, with the remaining two games being draws
+   UCB constant = 0.0: 24/25 wins for Player 1, with the remaining game being a draw
+   I expected somewhere around 0.5 to be best, since it just feels in some nebulous way 
+   like a good balance between going with known effective options and also looking for
+   greener pastures, but I'm honestly quite surprised how little of a difference varying
+   the constant made. Is it supposed to be that close?
+
+4. P1 - 64 rollouts, P2 - 8 rollouts. P1 won 22/25 and drew twice, with P2 winning once
+   P1 - 512 rollouts, P2 - 8 rollouts. P1 won 23/25 and drew twice
+   P1 - 512 rollouts, P2 - 64 rollouts. P1 won 9/25 and drew 13 times, with P2 winning 3
+   P1 - 8 rollouts, P2 - 64 rollouts. P1 won 2/25 and drew three times, with P2 winning 20
+   P1 - 8 rollouts, P2 - 512 rollouts. P1 won 0/25 and drew eight times, with P2 winning 17
+   P1 - 64 rollouts, P2 - 512 rollouts. P1 won 4/25 and drew 12 times, with P2 winning 9
+   Unsurprisingly, more rollouts leads to a better win percentage, and when both players are
+   smart, they draw more often. 
