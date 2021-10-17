@@ -38,7 +38,7 @@ class Node(object):
         self.parent = parent_node
         self.children = {} # maps moves (keys) to Nodes (values); if you use it differently, you must also change addMove
         self.visits = 0
-        self.value = float("nan")
+        self.value = 0
         # Note: you may add additional fields if needed
         
     def addMove(self, move):
@@ -67,21 +67,16 @@ class Node(object):
         wins = self.value * self.visits
         if outcome == self.state.getTurn():
             wins += 1
+        elif outcome == 0:
+            wins += 0.5
         self.visits += 1
         self.value = wins / self.visits
 
     def UCBValue(self):
         """Value from the UCB formula used by parent to select a child. """
-        return self.value * self.visits + UCB_CONST * math.sqrt(math.log(self.parent.visits) / self.visits)
-
-    def getBestMove(self):
-        turn = self.state.getTurn()
-        max_value = (float('-inf') * turn, None)
-        for key in self.children.keys():
-            child = self.children[key]
-            if child.value * (turn) > max_value[0]:
-                max_value = (child.value * (turn), child)
-        return max_value[1]
+        if self.visits == 0:
+            return -1
+        return self.value + UCB_CONST * math.sqrt(math.log(self.parent.visits) / self.visits)
 
 def MCTS(root, rollouts):
     """Select a move by Monte Carlo tree search.
@@ -99,51 +94,60 @@ def MCTS(root, rollouts):
         The legal move from node.state with the highest value estimate
     """
     for i in range(rollouts):
-        node_to_expand = select(root)
-        if not node_to_expand.state.isTerminal():
-            outcome = expand(node_to_expand)
+        node = root
+        node = select(node)
+        if not node.state.isTerminal():
+            node = expand(node)
+            outcome = random_playout(node)
         else:
-            outcome = (node_to_expand.state.value(), node_to_expand)
-        back_propagate(outcome[0], outcome[1], root)
-        print(root.getBestMove())
-    return root.getBestMove()
+            outcome = node.state.value()
+        backpropagate(outcome, node, root)
+    return bestValue(node)
 
 def select(node):
-    '''Beginning of the select helper function for the first part of the assignment. There are some tweaks that need 
-    to be made, but that's a problem for tomorrow.'''
-    while len(node.children) == len(node.state.getMoves()) and not node.state.isTerminal():
-        turn = node.state.getTurn()
-        max_ucb = (float('-inf') * turn, random.choice(node.children))
-        for key in node.children.keys():
-            child = node.children[key]
-            if child.visits > 0 and child.UCBValue() * turn > max_ucb[0] * turn:
-                max_ucb = (child.UCBValue() * turn, child)
-        node = max_ucb[1]
+    while not node.state.isTerminal() and len(node.children) == len(node.state.getMoves()):
+        node = bestUCB(node)
     return node
 
+def bestUCB(node):
+    turn = node.state.getTurn()
+    curr_best = (-100 * turn, None)
+    for key in node.children.keys():
+        child = node.children[key]
+        if turn * child.UCBValue() >= turn*curr_best[0]:
+            curr_best = (turn * child.UCBValue(), child)
+    return curr_best[1]
+
 def expand(node):
-    if node.state.isTerminal():
-        outcome = (node.state.value(), node)
-    else:
-        move = random_move(node)
-        child = Node(node.state.nextState(move), node)
-        node.children[move] = child
-        outcome = (random_playout(child), child)
-    return outcome
+    moves = node.state.getMoves()
+    for move in moves:
+        if move not in node.children.keys():
+            node.children[move] = Node(node.state.nextState(move), node)
+            child = node.children[move]
+            break
+    return child
 
 def random_playout(node):
     while not node.state.isTerminal():
-        move = random_move(node)
-        child = Node(node.state.nextState(move), None)
-        node = child
+        node = Node(node.state.nextState(random_move(node)), None)
     return node.state.value()
 
-def back_propagate(outcome, curr_node, root):
+def backpropagate(outcome, node, root):
     while True:
-        curr_node.updateValue(outcome)
-        if curr_node is root:
+        node.updateValue(outcome)
+        if node is root:
             break
-        curr_node = curr_node.parent
+        node = node.parent
+
+def bestValue(node):
+    turn = node.state.getTurn()
+    curr_best = (float('-inf') * turn, None)
+    for key in node.children.keys():
+        child = node.children[key]
+        if child.value * turn > turn * curr_best[0]:
+            curr_best = (child.value * turn, key)
+    return curr_best[1]
+
 
 def parse_args():
     """
