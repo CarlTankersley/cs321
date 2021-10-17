@@ -75,7 +75,7 @@ class Node(object):
     def UCBValue(self):
         """Value from the UCB formula used by parent to select a child. """
         if self.visits == 0:
-            return -1
+            return 0
         return self.value + UCB_CONST * math.sqrt(math.log(self.parent.visits) / self.visits)
 
 def MCTS(root, rollouts):
@@ -114,7 +114,7 @@ def bestUCB(node):
     curr_best = (-100 * turn, None)
     for key in node.children.keys():
         child = node.children[key]
-        if turn * child.UCBValue() >= turn*curr_best[0]:
+        if turn * child.UCBValue() > turn * curr_best[0]:
             curr_best = (turn * child.UCBValue(), child)
     return curr_best[1]
 
@@ -140,8 +140,8 @@ def backpropagate(outcome, node, root):
         node = node.parent
 
 def bestValue(node):
-    turn = node.state.getTurn()
-    curr_best = (float('-inf') * turn, None)
+    turn = -node.state.getTurn()
+    curr_best = (float('inf') * turn, None)
     for key in node.children.keys():
         child = node.children[key]
         if child.value * turn > turn * curr_best[0]:
