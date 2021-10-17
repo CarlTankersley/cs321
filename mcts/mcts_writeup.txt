@@ -13,7 +13,7 @@
    I expected somewhere around 0.5 to be best, since it just feels in some nebulous way 
    like a good balance between going with known effective options and also looking for
    greener pastures, but I'm honestly quite surprised how little of a difference varying
-   the constant made. Is it supposed to be that close?
+   the constant made. 
 
 4. P1 - 64 rollouts, P2 - 8 rollouts. P1 won 22/25 and drew twice, with P2 winning once
    P1 - 512 rollouts, P2 - 8 rollouts. P1 won 23/25 and drew twice

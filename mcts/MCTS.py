@@ -157,6 +157,7 @@ def parse_args():
     Parse command line arguments.
     """
     p = argparse.ArgumentParser()
+    # added short forms of command line args because I'm lazy
     p.add_argument("-r", "--rollouts", type=int, default=0, help="Number of root-to-leaf " +
                    "play-throughs that MCTS should run). Default=0 (random moves)")
     p.add_argument("-n", "--numGames", type=int, default=0, help="Number of games " +
