@@ -68,7 +68,6 @@ class BlackjackMDP(util.MDP):
             return [PossibleResult(successor=newState,
                                    probability=1,
                                    reward=state.handTotal)]
-
         elif action == 'Take':
             if state.nextCard is not None:
                 newDeckCounts = state.deckCounts
@@ -77,15 +76,27 @@ class BlackjackMDP(util.MDP):
                 return [PossibleResult(successor=newState, probability=1, reward=newState.handTotal)]
             states = []
             totalCards = sum(state.deckCounts)
-            for i, count in state.deckCounts:
-                if count != 0:
+            for i in range(len(state.deckCounts)):
+                if state.deckCounts[i] != 0:
                     newDeckCounts = state.deckCounts
                     newDeckCounts[i] -= 1
                     newState = State(handTotal=state.handTotal + self.cardValues[i], nextCard=None, deckCounts=newDeckCounts)
                     states.append(PossibleResult(successor=newState, probability=state.deckCounts[i]/totalCards, reward=newState.handTotal))
             return states
 
-            
+        elif action == 'Peek':
+            if state.nextCard is not None:
+                return [PossibleResult(successor=state, probability=1, reward=state.handTotal)]
+            else:
+                states = []
+                totalCards = sum(state.deckCounts)
+                for i in range(len(state.deckCounts)):
+                    if state.deckCounts[i] != 0:
+                        newState = State(handTotal=state.handTotal, nextCard=state.deckCounts[i], deckCounts=state.deckCounts0)
+                        states.append(PossibleResult(successor=newState, probability=state.deckCounts[i]/totalCards, reward=newState.handTotal))
+                return states
+                
+                
 
         # END_YOUR_CODE
 
