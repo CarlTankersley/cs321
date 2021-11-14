@@ -2,12 +2,15 @@
 
 
 # from typing_extensions import Required
-import util, math, random
+import util
+import math
+import random
 from collections import defaultdict, namedtuple
 from util import FixedRLAlgorithm, ValueIteration, State, PossibleResult, Feature
 from typing import List, Callable, Tuple, Any
 
 ############################################################
+
 
 class BlackjackMDP(util.MDP):
     def __init__(self, cardValues: List[int], multiplicity: int, threshold: int, peekCost: int):
@@ -54,8 +57,6 @@ class BlackjackMDP(util.MDP):
     # tuples in the same order.
     def succAndProbReward(self, state: State, action: str) -> List[PossibleResult]:
         # BEGIN_YOUR_CODE HERE; I'VE ADDED SOME LIMITED STARTING CODE
-        if state.handTotal > self.threshold:
-            return []
 
         if state.deckCounts == None:
             return []
@@ -74,10 +75,13 @@ class BlackjackMDP(util.MDP):
                 stateReward = 0
                 if state.handTotal + self.cardValues[state.nextCard] > self.threshold or sum(newDeckCounts) == 0:
                     if sum(newDeckCounts) == 0:
-                        stateReward = state.handTotal + self.cardValues[state.nextCard]
-                    newState = State(handTotal=state.handTotal + self.cardValues[state.nextCard], nextCard=None, deckCounts=None)
+                        stateReward = state.handTotal + \
+                            self.cardValues[state.nextCard]
+                    newState = State(
+                        handTotal=state.handTotal + self.cardValues[state.nextCard], nextCard=None, deckCounts=None)
                 else:
-                    newState = State(handTotal=state.handTotal + self.cardValues[state.nextCard], nextCard=None, deckCounts=tuple(newDeckCounts))
+                    newState = State(
+                        handTotal=state.handTotal + self.cardValues[state.nextCard], nextCard=None, deckCounts=tuple(newDeckCounts))
                 return [PossibleResult(successor=newState, probability=1, reward=stateReward)]
             states = []
             totalCards = sum(state.deckCounts)
@@ -89,10 +93,13 @@ class BlackjackMDP(util.MDP):
                     if state.handTotal + self.cardValues[i] > self.threshold or sum(newDeckCounts) == 0:
                         if sum(newDeckCounts) == 0:
                             stateReward = state.handTotal + self.cardValues[i]
-                        newState = State(handTotal=state.handTotal + self.cardValues[i], nextCard=None, deckCounts=None)
+                        newState = State(
+                            handTotal=state.handTotal + self.cardValues[i], nextCard=None, deckCounts=None)
                     else:
-                        newState = State(handTotal=state.handTotal + self.cardValues[i], nextCard=None, deckCounts=tuple(newDeckCounts))
-                    states.append(PossibleResult(successor=newState, probability=state.deckCounts[i]/totalCards, reward=stateReward))
+                        newState = State(
+                            handTotal=state.handTotal + self.cardValues[i], nextCard=None, deckCounts=tuple(newDeckCounts))
+                    states.append(PossibleResult(
+                        successor=newState, probability=state.deckCounts[i]/totalCards, reward=stateReward))
             return states
 
         elif action == 'Peek':
@@ -103,8 +110,10 @@ class BlackjackMDP(util.MDP):
                 totalCards = sum(state.deckCounts)
                 for i in range(len(state.deckCounts)):
                     if state.deckCounts[i] != 0:
-                        newState = State(handTotal=state.handTotal, nextCard=i, deckCounts=state.deckCounts)
-                        states.append(PossibleResult(successor=newState, probability=state.deckCounts[i]/totalCards, reward=-self.peekCost))
+                        newState = State(
+                            handTotal=state.handTotal, nextCard=i, deckCounts=state.deckCounts)
+                        states.append(PossibleResult(
+                            successor=newState, probability=state.deckCounts[i]/totalCards, reward=-self.peekCost))
                 return states
 
         # END_YOUR_CODE
@@ -158,16 +167,20 @@ class QLearningAlgorithm(util.RLAlgorithm):
 
         if newState == None:
             return
-        bestQ = max(self.getQ(newState, action) for action in self.actions(newState))
+        bestQ = max(self.getQ(newState, action)
+                    for action in self.actions(newState))
 
         featureValues = self.featureExtractor(state, action)
         for featureKey, featureValue in featureValues:
-            self.weights[featureKey] += self.getStepSize()*(reward + self.discount*bestQ - self.weights[featureKey])
+            self.weights[featureKey] += self.getStepSize() * \
+                (reward + self.discount*bestQ - self.weights[featureKey])
 
         # END_YOUR_CODE
 
 # Return a single-element list containing a binary (indicator) feature
 # for the existence of the (state, action) pair.  Provides no generalization.
+
+
 def identityFeatureExtractor(state: Tuple, action: Any) -> List[Feature]:
     featureKey = (state, action)
     featureValue = 1
@@ -177,19 +190,23 @@ def identityFeatureExtractor(state: Tuple, action: Any) -> List[Feature]:
 # (This was an exercise in the original version, but I just did it)
 #
 # As noted in the comments/documentation, util.simulate() is a function that takes as inputs an MDP and a particular RL algorithm you wish to run on the MDP.
-# The RL algorithm will be an instance of the RLAlgorithm abstract class defined in util.py. 
-# In this case, you’ll want to use the Q-learning algorithm that you implemented in 4(a). 
-# Once you’re done calling simulate, your RL will have explored and learned a policy from the MDP. 
+# The RL algorithm will be an instance of the RLAlgorithm abstract class defined in util.py.
+# In this case, you’ll want to use the Q-learning algorithm that you implemented in 4(a).
+# Once you’re done calling simulate, your RL will have explored and learned a policy from the MDP.
 # You will also want to run value iteration on the same MDP to get a policy pi
-# Now that you have your trained Q-learning policy and value iteration policy, you can examine/explore the two and see where/how they differ. 
-# You’ll want to think about how you can extract/query the policy from your trained Q-learning algorithm object. 
-# Note that you should be careful that when you’re examining the policy, this is the final, “optimal” policy (i.e. your algorithm should only exploit, not explore). 
+# Now that you have your trained Q-learning policy and value iteration policy, you can examine/explore the two and see where/how they differ.
+# You’ll want to think about how you can extract/query the policy from your trained Q-learning algorithm object.
+# Note that you should be careful that when you’re examining the policy, this is the final, “optimal” policy (i.e. your algorithm should only exploit, not explore).
+
 
 # Small test case
-smallMDP = BlackjackMDP(cardValues=[1, 5], multiplicity=2, threshold=10, peekCost=1)
+smallMDP = BlackjackMDP(
+    cardValues=[1, 5], multiplicity=2, threshold=10, peekCost=1)
 
 # Large test case
-largeMDP = BlackjackMDP(cardValues=[1, 3, 5, 8, 10], multiplicity=3, threshold=40, peekCost=1)
+largeMDP = BlackjackMDP(
+    cardValues=[1, 3, 5, 8, 10], multiplicity=3, threshold=40, peekCost=1)
+
 
 def simulate_QL_over_MDP(mdp: BlackjackMDP, featureExtractor: Callable):
     print()
@@ -210,7 +227,8 @@ def simulate_QL_over_MDP(mdp: BlackjackMDP, featureExtractor: Callable):
         totalCount += 1
         if alg.pi[state] == qlearn.getAction(state):
             correctCount += 1
-        totalError += math.fabs(alg.V[state] - qlearn.getQ(state, qlearn.getAction(state)))
+        totalError += math.fabs(alg.V[state] -
+                                qlearn.getQ(state, qlearn.getAction(state)))
         # print(state, alg.V[state], qlearn.getQ(state, qlearn.getAction(state)))
         # print(state, alg.pi[state], qlearn.getAction(state))
     print("Total number of states:", totalCount)
@@ -227,12 +245,13 @@ def simulate_QL_over_MDP(mdp: BlackjackMDP, featureExtractor: Callable):
     print("Now simulating average rewards from both approaches...")
     valueIterationAlgorithm = FixedRLAlgorithm(alg.pi)
     numIters = 10000
-    valueIterationRewards = util.simulate(mdp, valueIterationAlgorithm, numIters)
+    valueIterationRewards = util.simulate(
+        mdp, valueIterationAlgorithm, numIters)
     qlearnRewards = util.simulate(mdp, qlearn, numIters)
     print()
-    print("Avg rewards from value iteration result = ", sum(valueIterationRewards)/numIters)
+    print("Avg rewards from value iteration result = ",
+          sum(valueIterationRewards)/numIters)
     print("Avg rewards from q-learning result = ", sum(qlearnRewards)/numIters)
-
 
 
 ############################################################
@@ -245,7 +264,7 @@ def simulate_QL_over_MDP(mdp: BlackjackMDP, featureExtractor: Callable):
 #       The feature should be (('total', totalCardValueInHand, action),1). Feel free to use a different name.
 # -- Indicator for the action and the presence/absence of each face value in the deck.
 #       Example: if the deck is (3, 4, 0, 2), then your indicator on the presence of each card is (1, 1, 0, 1)
-#       The feature will be (('bitmask', (1, 1, 0, 1), action), 1). Feel free to use a different name. 
+#       The feature will be (('bitmask', (1, 1, 0, 1), action), 1). Feel free to use a different name.
 #       Note: only add this feature if the deck is not None.
 # -- Indicators for the action and the number of cards remaining with each face value.
 #       Example: if the deck is (3, 4, 0, 2), you should have four features (one for each face value).
@@ -259,13 +278,17 @@ def blackjackFeatureExtractor(state: State, action: str) -> List[Feature]:
     if state.deckCounts == None:
         return features
 
-    features.append(Feature(featureKey=('total', state.handTotal, action), featureValue=1))
+    features.append(
+        Feature(featureKey=('total', state.handTotal, action), featureValue=1))
 
-    bitmask = tuple([1 if cardCount > 0 else 0 for cardCount in state.deckCounts])
-    features.append(Feature(featureKey=('bitmask', bitmask, action), featureValue=1))
+    bitmask = tuple(
+        [1 if cardCount > 0 else 0 for cardCount in state.deckCounts])
+    features.append(
+        Feature(featureKey=('bitmask', bitmask, action), featureValue=1))
 
     for cardPos in range(len(state.deckCounts)):
-        features.append(Feature(featureKey=(cardPos,state.deckCounts[cardPos],action), featureValue=1))
+        features.append(Feature(featureKey=(
+            cardPos, state.deckCounts[cardPos], action), featureValue=1))
 
     return features
 
