@@ -173,7 +173,7 @@ class QLearningAlgorithm(util.RLAlgorithm):
         featureValues = self.featureExtractor(state, action)
         for featureKey, featureValue in featureValues:
             self.weights[featureKey] += self.getStepSize() * \
-                (reward + self.discount*bestQ - self.weights[featureKey])
+                (reward + self.discount*bestQ - self.getQ(state,action))
 
         # END_YOUR_CODE
 
