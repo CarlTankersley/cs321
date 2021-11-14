@@ -388,7 +388,7 @@ class Grader:
             self.currentPart.side = side
 
     @staticmethod
-    def truncate_string(string, length=200):
+    def truncate_string(string, length=500):
         if len(string) <= length:
             return string
         else:

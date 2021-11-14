@@ -1,7 +1,7 @@
 # Originally created by Percy Liang, modified by Dave Musicant
 
 
-from typing_extensions import Required
+# from typing_extensions import Required
 import util, math, random
 from collections import defaultdict, namedtuple
 from util import FixedRLAlgorithm, ValueIteration, State, PossibleResult, Feature
@@ -55,7 +55,6 @@ class BlackjackMDP(util.MDP):
     def succAndProbReward(self, state: State, action: str) -> List[PossibleResult]:
         # BEGIN_YOUR_CODE HERE; I'VE ADDED SOME LIMITED STARTING CODE
         if state.handTotal > self.threshold:
-            state.deckCounts = None
             return []
 
         if state.deckCounts == None:
@@ -70,33 +69,43 @@ class BlackjackMDP(util.MDP):
                                    reward=state.handTotal)]
         elif action == 'Take':
             if state.nextCard is not None:
-                newDeckCounts = state.deckCounts
+                newDeckCounts = list(state.deckCounts)
                 newDeckCounts[state.nextCard] -= 1
-                newState = State(handTotal=state.handTotal + self.cardValues[state.nextCard], nextCard=None, deckCounts=newDeckCounts)
-                return [PossibleResult(successor=newState, probability=1, reward=newState.handTotal)]
+                stateReward = 0
+                if state.handTotal + self.cardValues[state.nextCard] > self.threshold or sum(newDeckCounts) == 0:
+                    if sum(newDeckCounts) == 0:
+                        stateReward = state.handTotal + self.cardValues[state.nextCard]
+                    newState = State(handTotal=state.handTotal + self.cardValues[state.nextCard], nextCard=None, deckCounts=None)
+                else:
+                    newState = State(handTotal=state.handTotal + self.cardValues[state.nextCard], nextCard=None, deckCounts=tuple(newDeckCounts))
+                return [PossibleResult(successor=newState, probability=1, reward=stateReward)]
             states = []
             totalCards = sum(state.deckCounts)
             for i in range(len(state.deckCounts)):
                 if state.deckCounts[i] != 0:
-                    newDeckCounts = state.deckCounts
+                    newDeckCounts = list(state.deckCounts)
                     newDeckCounts[i] -= 1
-                    newState = State(handTotal=state.handTotal + self.cardValues[i], nextCard=None, deckCounts=newDeckCounts)
-                    states.append(PossibleResult(successor=newState, probability=state.deckCounts[i]/totalCards, reward=newState.handTotal))
+                    stateReward = 0
+                    if state.handTotal + self.cardValues[i] > self.threshold or sum(newDeckCounts) == 0:
+                        if sum(newDeckCounts) == 0:
+                            stateReward = state.handTotal + self.cardValues[i]
+                        newState = State(handTotal=state.handTotal + self.cardValues[i], nextCard=None, deckCounts=None)
+                    else:
+                        newState = State(handTotal=state.handTotal + self.cardValues[i], nextCard=None, deckCounts=tuple(newDeckCounts))
+                    states.append(PossibleResult(successor=newState, probability=state.deckCounts[i]/totalCards, reward=stateReward))
             return states
 
         elif action == 'Peek':
             if state.nextCard is not None:
-                return [PossibleResult(successor=state, probability=1, reward=state.handTotal)]
+                return [PossibleResult(successor=state, probability=1, reward=-self.peekCost)]
             else:
                 states = []
                 totalCards = sum(state.deckCounts)
                 for i in range(len(state.deckCounts)):
                     if state.deckCounts[i] != 0:
-                        newState = State(handTotal=state.handTotal, nextCard=state.deckCounts[i], deckCounts=state.deckCounts0)
-                        states.append(PossibleResult(successor=newState, probability=state.deckCounts[i]/totalCards, reward=newState.handTotal))
+                        newState = State(handTotal=state.handTotal, nextCard=i, deckCounts=state.deckCounts)
+                        states.append(PossibleResult(successor=newState, probability=state.deckCounts[i]/totalCards, reward=-self.peekCost))
                 return states
-                
-                
 
         # END_YOUR_CODE
 
@@ -147,10 +156,13 @@ class QLearningAlgorithm(util.RLAlgorithm):
     def incorporateFeedback(self, state: State, action: Any, reward: int, newState: State) -> None:
         # BEGIN_YOUR_CODE; I'VE STARTED IT, BUT WITH NOT MUCH
 
+        if newState == None:
+            return
+        bestQ = max(self.getQ(newState, action) for action in self.actions(newState))
+
         featureValues = self.featureExtractor(state, action)
         for featureKey, featureValue in featureValues:
-            self.weights[featureKey] += 10
-
+            self.weights[featureKey] += self.getStepSize()*(reward + self.discount*bestQ - self.weights[featureKey])
 
         # END_YOUR_CODE
 
@@ -244,13 +256,17 @@ def blackjackFeatureExtractor(state: State, action: str) -> List[Feature]:
     # BEGIN_YOUR_CODE; I'VE WRITTEN A SMALL AMOUNT TO GET YOU STARTED.
     features: List[Feature] = []
 
-    if state == None:
+    if state.deckCounts == None:
         return features
 
     features.append(Feature(featureKey=('total', state.handTotal, action), featureValue=1))
 
+    bitmask = tuple([1 if cardCount > 0 else 0 for cardCount in state.deckCounts])
+    features.append(Feature(featureKey=('bitmask', bitmask, action), featureValue=1))
+
+    for cardPos in range(len(state.deckCounts)):
+        features.append(Feature(featureKey=(cardPos,state.deckCounts[cardPos],action), featureValue=1))
+
     return features
-
-
 
     # END_YOUR_CODE
